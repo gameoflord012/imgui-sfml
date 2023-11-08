@@ -283,94 +283,118 @@ void ProcessEvent(const sf::Window& window, const sf::Event& event) {
     ImGuiIO& io = ImGui::GetIO();
 
     if (s_currWindowCtx->windowHasFocus) {
-        switch (event.type) {
-        case sf::Event::Resized:
+        switch (event.getType()) {
+        case sf::Event::Type::Resized: {
+            const auto& resized = event.get<sf::Event::Resized>();
             io.DisplaySize =
-                ImVec2(static_cast<float>(event.size.width), static_cast<float>(event.size.height));
-            break;
-        case sf::Event::MouseMoved:
-            io.AddMousePosEvent(static_cast<float>(event.mouseMove.x),
-                                static_cast<float>(event.mouseMove.y));
+                ImVec2(static_cast<float>(resized.width), static_cast<float>(resized.height));
+        } break;
+        case sf::Event::Type::MouseMoved: {
+            const auto& mouseMoved = event.get<sf::Event::MouseMoved>();
+            io.AddMousePosEvent(static_cast<float>(mouseMoved.x), static_cast<float>(mouseMoved.y));
             s_currWindowCtx->mouseMoved = true;
-            break;
-        case sf::Event::MouseButtonPressed: // fall-through
-        case sf::Event::MouseButtonReleased: {
-            const int button = event.mouseButton.button;
+        } break;
+        case sf::Event::Type::MouseButtonPressed: {
+            const auto& mouseButtonPressed = event.get<sf::Event::MouseButtonPressed>();
+            const int button = mouseButtonPressed.button;
             if (button >= 0 && button < 3) {
-                if (event.type == sf::Event::MouseButtonPressed) {
-                    s_currWindowCtx->mousePressed[event.mouseButton.button] = true;
-                    io.AddMouseButtonEvent(button, true);
-                } else {
-                    io.AddMouseButtonEvent(button, false);
-                }
+                s_currWindowCtx->mousePressed[button] = true;
+                io.AddMouseButtonEvent(button, true);
             }
         } break;
-        case sf::Event::TouchBegan: // fall-through
-        case sf::Event::TouchEnded: {
+        case sf::Event::Type::MouseButtonReleased: {
+            const int button = event.get<sf::Event::MouseButtonReleased>().button;
+            if (button >= 0 && button < 3) {
+                io.AddMouseButtonEvent(button, false);
+            }
+        } break;
+        case sf::Event::Type::TouchBegan: {
             s_currWindowCtx->mouseMoved = false;
-            const unsigned int button = event.touch.finger;
-            if (event.type == sf::Event::TouchBegan && button < 3) {
-                s_currWindowCtx->touchDown[event.touch.finger] = true;
+            const unsigned int button = event.get<sf::Event::TouchBegan>().finger;
+            if (button < 3) {
+                s_currWindowCtx->touchDown[button] = true;
             }
         } break;
-        case sf::Event::MouseWheelScrolled:
-            if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel ||
-                (event.mouseWheelScroll.wheel == sf::Mouse::HorizontalWheel && io.KeyShift)) {
-                io.AddMouseWheelEvent(0, event.mouseWheelScroll.delta);
-            } else if (event.mouseWheelScroll.wheel == sf::Mouse::HorizontalWheel) {
-                io.AddMouseWheelEvent(event.mouseWheelScroll.delta, 0);
-            }
+        case sf::Event::Type::TouchEnded:
+            s_currWindowCtx->mouseMoved = false;
             break;
-        case sf::Event::KeyPressed: // fall-through
-        case sf::Event::KeyReleased: {
-            const bool down = (event.type == sf::Event::KeyPressed);
-
-            const ImGuiKey mod = keycodeToImGuiMod(event.key.code);
+        case sf::Event::Type::MouseWheelScrolled: {
+            const auto& mouseWheelScrolled = event.get<sf::Event::MouseWheelScrolled>();
+            if (mouseWheelScrolled.wheel == sf::Mouse::VerticalWheel ||
+                (mouseWheelScrolled.wheel == sf::Mouse::HorizontalWheel && io.KeyShift)) {
+                io.AddMouseWheelEvent(0, mouseWheelScrolled.delta);
+            } else if (mouseWheelScrolled.wheel == sf::Mouse::HorizontalWheel) {
+                io.AddMouseWheelEvent(mouseWheelScrolled.delta, 0);
+            }
+        } break;
+        case sf::Event::Type::KeyPressed: {
+            const auto& keyPressed = event.get<sf::Event::KeyPressed>();
+            const ImGuiKey mod = keycodeToImGuiMod(keyPressed.code);
             // The modifier booleans are not reliable when it's the modifier
             // itself that's being pressed. Detect these presses directly.
             if (mod != ImGuiKey_None) {
-                io.AddKeyEvent(mod, down);
+                io.AddKeyEvent(mod, true);
             } else {
-                io.AddKeyEvent(ImGuiKey_ModCtrl, event.key.control);
-                io.AddKeyEvent(ImGuiKey_ModShift, event.key.shift);
-                io.AddKeyEvent(ImGuiKey_ModAlt, event.key.alt);
-                io.AddKeyEvent(ImGuiKey_ModSuper, event.key.system);
+                io.AddKeyEvent(ImGuiKey_ModCtrl, keyPressed.control);
+                io.AddKeyEvent(ImGuiKey_ModShift, keyPressed.shift);
+                io.AddKeyEvent(ImGuiKey_ModAlt, keyPressed.alt);
+                io.AddKeyEvent(ImGuiKey_ModSuper, keyPressed.system);
             }
 
-            const ImGuiKey key = keycodeToImGuiKey(event.key.code);
-            io.AddKeyEvent(key, down);
-            io.SetKeyEventNativeData(key, event.key.code, -1);
+            const ImGuiKey key = keycodeToImGuiKey(keyPressed.code);
+            io.AddKeyEvent(key, true);
+            io.SetKeyEventNativeData(key, keyPressed.code, -1);
         } break;
-        case sf::Event::TextEntered:
+        case sf::Event::Type::KeyReleased: {
+            const auto& keyReleased = event.get<sf::Event::KeyReleased>();
+            const ImGuiKey mod = keycodeToImGuiMod(keyReleased.code);
+            // The modifier booleans are not reliable when it's the modifier
+            // itself that's being pressed. Detect these presses directly.
+            if (mod != ImGuiKey_None) {
+                io.AddKeyEvent(mod, false);
+            } else {
+                io.AddKeyEvent(ImGuiKey_ModCtrl, keyReleased.control);
+                io.AddKeyEvent(ImGuiKey_ModShift, keyReleased.shift);
+                io.AddKeyEvent(ImGuiKey_ModAlt, keyReleased.alt);
+                io.AddKeyEvent(ImGuiKey_ModSuper, keyReleased.system);
+            }
+
+            const ImGuiKey key = keycodeToImGuiKey(keyReleased.code);
+            io.AddKeyEvent(key, false);
+            io.SetKeyEventNativeData(key, keyReleased.code, -1);
+        } break;
+        case sf::Event::Type::TextEntered: {
+            const auto unicode = event.get<sf::Event::TextEntered>().unicode;
             // Don't handle the event for unprintable characters
-            if (event.text.unicode < ' ' || event.text.unicode == 127) {
+            if (unicode < ' ' || unicode == 127) {
                 break;
             }
-            io.AddInputCharacter(event.text.unicode);
-            break;
-        case sf::Event::JoystickConnected:
+            io.AddInputCharacter(unicode);
+        } break;
+        case sf::Event::Type::JoystickConnected: {
+            const auto joystickId = event.get<sf::Event::JoystickConnected>().joystickId;
             if (s_currWindowCtx->joystickId == NULL_JOYSTICK_ID) {
-                s_currWindowCtx->joystickId = event.joystickConnect.joystickId;
+                s_currWindowCtx->joystickId = joystickId;
             }
-            break;
-        case sf::Event::JoystickDisconnected:
-            if (s_currWindowCtx->joystickId == event.joystickConnect.joystickId) { // used gamepad
-                                                                                   // was
-                                                                                   // disconnected
+        } break;
+        case sf::Event::Type::JoystickDisconnected: {
+            const auto joystickId = event.get<sf::Event::JoystickDisconnected>().joystickId;
+            if (s_currWindowCtx->joystickId == joystickId) { // used gamepad was disconnected
                 s_currWindowCtx->joystickId = getConnectedJoystickId();
             }
             break;
+        }
         default:
             break;
         }
     }
 
-    switch (event.type) {
-    case sf::Event::LostFocus: {
+    switch (event.getType()) {
+    case sf::Event::Type::LostFocus: {
         io.AddFocusEvent(false);
         s_currWindowCtx->windowHasFocus = false;
     } break;
-    case sf::Event::GainedFocus:
+    case sf::Event::Type::GainedFocus:
         io.AddFocusEvent(true);
         s_currWindowCtx->windowHasFocus = true;
         break;

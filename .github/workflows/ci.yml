@@ -62,7 +62,7 @@ jobs:
       with:
         repository: SFML/SFML
         path: sfml
-        ref: master
+        ref: event_api
 
     - name: Configure SFML
       run: |
