@@ -22,6 +22,7 @@
 #include <cstring> // memcpy
 
 #include <algorithm>
+#include <array>
 #include <memory>
 #include <vector>
 
@@ -866,12 +867,12 @@ void RenderDrawLists(ImDrawData* draw_data) {
     // Backup GL state
     GLint last_texture = 0;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-    GLint last_polygon_mode[2];
-    glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode);
-    GLint last_viewport[4];
-    glGetIntegerv(GL_VIEWPORT, last_viewport);
-    GLint last_scissor_box[4];
-    glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box);
+    std::array<GLint, 2> last_polygon_mode{};
+    glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode.data());
+    std::array<GLint, 4> last_viewport{};
+    glGetIntegerv(GL_VIEWPORT, last_viewport.data());
+    std::array<GLint, 4> last_scissor_box{};
+    glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box.data());
     GLint last_shade_model = 0;
     glGetIntegerv(GL_SHADE_MODEL, &last_shade_model);
     GLint last_tex_env_mode = 0;
