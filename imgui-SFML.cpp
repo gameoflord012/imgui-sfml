@@ -178,10 +178,10 @@ struct WindowContext {
 
     bool windowHasFocus;
     bool mouseMoved{false};
-    bool mousePressed[3] = {false};
+    std::array<bool, 3> mousePressed{};
     ImGuiMouseCursor lastCursor{ImGuiMouseCursor_COUNT};
 
-    bool touchDown[3] = {false};
+    std::array<bool, 3> touchDown{};
     sf::Vector2i touchPos;
 
     unsigned int joystickId{getConnectedJoystickId()};
@@ -299,7 +299,7 @@ void ProcessEvent(const sf::Window& window, const sf::Event& event) {
             const int button = static_cast<int>(event.mouseButton.button);
             if (button >= 0 && button < 3) {
                 if (event.type == sf::Event::MouseButtonPressed) {
-                    s_currWindowCtx->mousePressed[static_cast<int>(event.mouseButton.button)] =
+                    s_currWindowCtx->mousePressed[static_cast<std::size_t>(event.mouseButton.button)] =
                         true;
                     io.AddMouseButtonEvent(button, true);
                 } else {
