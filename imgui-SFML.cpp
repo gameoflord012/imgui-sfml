@@ -433,7 +433,7 @@ void Update(const sf::Vector2i& mousePos, const sf::Vector2f& displaySize, sf::T
         updateJoystickAxisState(io);
     }
 
-    ImGui::NewFrame();
+    // ImGui::NewFrame();
 }
 
 void Render(sf::RenderWindow& window) {

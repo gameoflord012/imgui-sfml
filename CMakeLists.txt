@@ -1,6 +1,8 @@
 set(IMGUI_SOURCE_DIRECTORY ../imgui)
 
 add_library(imgui-sfml
+    ${IMGUI_SOURCE_DIRECTORY}/imgui_demo.cpp
+    
     ${IMGUI_SOURCE_DIRECTORY}/imgui_draw.cpp
     ${IMGUI_SOURCE_DIRECTORY}/imgui_tables.cpp
     ${IMGUI_SOURCE_DIRECTORY}/imgui_widgets.cpp
